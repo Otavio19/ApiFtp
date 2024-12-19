@@ -1,6 +1,7 @@
 import { Client } from 'basic-ftp'
 import fs from 'fs'
 import path from 'path'
+import { Readable } from 'stream'  // Importando o módulo stream
 
 const ftpConfig = {
     server: "ftp.dlptest.com",
@@ -39,37 +40,27 @@ class Ftp {
         }
       }
 
-      async uploadFileToFtp(directoryName, fileName, fileContent) {
-        let client
-        const currentDir = process.cwd()  // Diretório atual
-        const filePath = path.join(currentDir, fileName)  // Caminho do arquivo temporário
-    
+    async uploadFileToFtp(directoryName, fileName, fileContent) {
+        let client;
         try {
-            // Acessa o arquivo e insere conteúdo no mesmo.
-            fs.writeFileSync(filePath, fileContent)
-    
-            console.log('Arquivo criado em: ', filePath)
-    
-            client = await this.conectServer()
-    
-            // Navega até o diretório e cria o arquivo lá
-            await client.ensureDir(directoryName)  // Garantindo que o diretório exista
-            await client.uploadFrom(filePath, fileName)  // Envia o arquivo para o diretório
-    
-            return { message: `Arquivo "${fileName}" enviado com sucesso para o diretório "${directoryName}" no servidor FTP!` }
+            client = await this.conectServer();
+
+            // Navega até o diretório e cria o diretório, se necessário
+            await client.ensureDir(directoryName);  // Garantindo que o diretório exista
+            
+            // Envolve o conteúdo em um stream
+            const buffer = Buffer.from(fileContent);
+            const stream = Readable.from(buffer);  // Cria um stream a partir do buffer
+
+            // Envia o conteúdo diretamente para o servidor FTP
+            await client.uploadFrom(stream, fileName);  // Envia o arquivo para o diretório
+
+            return { message: `Arquivo "${fileName}" enviado com sucesso para o diretório "${directoryName}" no servidor FTP!` };
         } catch (error) {
-            throw new Error('Erro ao enviar o arquivo para o servidor FTP: ' + error.message)
+            throw new Error('Erro ao enviar o arquivo para o servidor FTP: ' + error.message);
         } finally {
-            if (client) {  
-                client.close()  
-            }
-    
-            // Verifica se o arquivo existe antes de tentar excluí-lo
-            if (fs.existsSync(filePath)) {
-                console.log('Removendo o arquivo temporário:', filePath)
-                fs.unlinkSync(filePath)  // Remove o arquivo temporário local após o envio
-            } else {
-                console.log('Arquivo não encontrado para exclusão:', filePath)
+            if (client) {
+                client.close();
             }
         }
     }    
@@ -81,7 +72,7 @@ class Ftp {
         try {
             client = await this.conectServer()
 
-            await client.ensureDir(directoryName) // ensureDir cria o diretorio no servidor.
+            await client.ensureDir(directoryName) // ensureDir cria o diretório no servidor.
 
             return { message: `Diretório "${directoryName}" criado com sucesso no servidor FTP!` }
         } catch (error) {
