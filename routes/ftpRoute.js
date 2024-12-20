@@ -24,9 +24,22 @@ const ftpRoute = async (fastify, options) => {
         }
     })
 
+    fastify.post('/ftp/verify-directory', async (request, reply) =>{
+
+        const {folders, releaseNote } = request.body
+
+        try{
+            const result = await ftpController.createDirectoryAndSubdirectories(folders, releaseNote)
+            return result
+        }catch (error) {
+            reply.status(500).send({ error: error.message })
+        }
+    })
+
     // Rota para criar um diretório no FTP
-    fastify.get('/ftp/create-directory/:directoryName', async (request, reply) => {
-        const { directoryName } = request.params
+    fastify.post('/ftp/create-directory', async (request, reply) => {
+        const { directoryName } = request.body
+        
         try {
             const result = await ftpController.createDirectoryOnFtp(directoryName)
             return result
@@ -35,9 +48,9 @@ const ftpRoute = async (fastify, options) => {
         }
     })
 
-    fastify.post('/ftp/create-directory-file/:directoryName/:fileName', async (request, reply) => {
-        const { directoryName, fileName } = request.params
-        const {fileContent} = request.body;
+    //Rota que pega o nome da pasta e cria o arquivo.
+    fastify.post('/ftp/create-directory-file', async (request, reply) => {
+        const {fileContent, directoryName, fileName} = request.body
     
         try {
             const result = await ftpController.createDirectoryAndUploadFile(directoryName, fileName, fileContent)
