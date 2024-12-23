@@ -11,6 +11,7 @@ const ftpConfig = {
 
 class Ftp {
 
+    // Pega a data Atual e retorna no formato YYYYMMDD
     async getCurrentDateFormatted() {
         const today = new Date()
 
@@ -21,6 +22,7 @@ class Ftp {
         return `${year}${month}${day}`
     }
 
+    //Conecta com o Servidor
     async conectServer() {
         const client = new Client()
 
@@ -36,7 +38,7 @@ class Ftp {
         }
     }
 
-    // Função para listar arquivos no FTP
+    // Lista arquivos no FTP
     async listFtpFiles() {
         let client
         try {
@@ -50,6 +52,7 @@ class Ftp {
         }
     }
 
+    //Cria arquivo no FTP
     async uploadFileToFtp(directoryName, fileName, fileContent) {
         let client;
         try {
@@ -129,11 +132,11 @@ class Ftp {
             await client.ensureDir(directoryName) //EnsureDir cria o diretorio.
             await client.cd('/' + directoryName)
 
-            for(let i = 0; i < folders.length ; i++){
+            for (let i = 0; i < folders.length; i++) {
                 await client.ensureDir(folders[i].directoryName)
                 caminho = await client.pwd()
 
-                for(let c = 0; c < folders[i].folderContent.length; c++){
+                for (let c = 0; c < folders[i].folderContent.length; c++) {
                     this.uploadFileToDirectory(caminho, folders[i].folderContent[c].fileName, folders[i].folderContent[c].fileContent)
                 }
                 await client.cd('..')
@@ -141,7 +144,7 @@ class Ftp {
             }
 
             caminho = await client.pwd()
-            this.uploadFileToDirectory(caminho, releaseNote.fileName,  releaseNote.fileContent)
+            this.uploadFileToDirectory(caminho, releaseNote.fileName, releaseNote.fileContent)
 
             return { message: 'Pastas Criadas.' }
 
@@ -156,7 +159,6 @@ class Ftp {
 
     // Função para criar diretório e enviar arquivo TXT dentro dele
     async createDirectoryAndUploadFile(directoryName, fileName, fileContent) {
-        //const createDirResult = await this.createDirectoryOnFtp(directoryName)
 
         const uploadResult = await this.uploadFileToFtp(directoryName, fileName, fileContent)
 
@@ -164,6 +166,31 @@ class Ftp {
             message: `Diretório ${directoryName} e arquivo ${fileName} criados com sucesso!`,
             directoryResult: createDirResult,
             fileResult: uploadResult
+        }
+    }
+
+    async createFiles(folderName, fileName, fileContent) {
+        const directoryName = await this.getCurrentDateFormatted()
+        let client;
+
+        try {
+            client = await this.conectServer() // Aqui ele conecta na Raiz
+            let caminho = await client.pwd()
+
+            // Cria o diretório principal com o nome da data
+            await client.ensureDir(directoryName) //EnsureDir cria a pasta raiz
+            await client.cd('/' + directoryName) // Acessa a pasta raiz
+
+            await client.ensureDir(folderName) //EnsureDir cria a pasta dentro da Raiz
+            caminho = await client.pwd()
+            this.uploadFileToDirectory(caminho, fileName, fileContent)
+            
+        } catch (error) {
+            throw new Error('Erro ao verificar ou criar os diretórios no servidor FTP: ' + error.message)
+        } finally {
+            if (client) {
+                client.close()
+            }
         }
     }
 }

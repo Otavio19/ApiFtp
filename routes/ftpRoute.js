@@ -59,6 +59,17 @@ const ftpRoute = async (fastify, options) => {
             reply.status(500).send({ error: error.message })
         }
     })
+
+    fastify.post('/ftp/create-file', async(request, async)=>{
+        const {folderName, fileName, fileContent} = request.body
+
+        try {
+            const result = await ftpController.createFiles(folderName, fileName, fileContent)
+            return result
+        } catch (error) {
+            reply.status(500).send({ error: error.message })
+        }
+    })
     
 }
 
