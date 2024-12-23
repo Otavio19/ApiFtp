@@ -182,8 +182,9 @@ class Ftp {
             await client.cd('/' + directoryName) // Acessa a pasta raiz
 
             await client.ensureDir(folderName) //EnsureDir cria a pasta dentro da Raiz
-            await client.cd('/' + folderName) 
+            //await client.cd('/' + folderName) 
             caminho = await client.pwd()
+            return {caminho}
             this.uploadFileToDirectory(caminho, fileName, fileContent)
 
         } catch (error) {
