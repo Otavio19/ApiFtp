@@ -15,7 +15,7 @@ const ftpRoute = async (fastify, options) => {
     })
 
     // Rota para enviar um arquivo para o servidor FTP
-    fastify.get('/ftp/upload', async (request, reply) => {
+    fastify.post('/ftp/upload', async (request, reply) => {
         const { directoryName, fileName, fileContent } = request.body
         try {
             const result = await ftpController.uploadFileToFtp(directoryName, fileName, fileContent)
