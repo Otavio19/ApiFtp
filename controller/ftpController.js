@@ -182,9 +182,10 @@ class Ftp {
             await client.cd('/' + directoryName) // Acessa a pasta raiz
 
             await client.ensureDir(folderName) //EnsureDir cria a pasta dentro da Raiz
+            await client.cd('/' + folderName) 
             caminho = await client.pwd()
             this.uploadFileToDirectory(caminho, fileName, fileContent)
-            
+
         } catch (error) {
             throw new Error('Erro ao verificar ou criar os diretórios no servidor FTP: ' + error.message)
         } finally {
