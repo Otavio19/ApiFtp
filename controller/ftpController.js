@@ -90,6 +90,8 @@ class Ftp {
             console.log('CAMINHO ACESSADO: ' + caminho)
             console.log('NOME ACESSADO: ' + fileName)
             console.log('FILECONTENT ACESSADO: ' + fileContent)
+
+            return { fileContent : fileContent, fileName: fileName}
         } catch (e) {
             throw new Error('Erro ao acessar o diretório no servidor FTP: ' + e.message)
         } finally {
@@ -184,9 +186,9 @@ class Ftp {
             await client.ensureDir(folderName) //EnsureDir cria a pasta dentro da Raiz
             //await client.cd('/' + folderName) 
             caminho = await client.pwd()
-            return {caminho}
-            this.uploadFileToDirectory(caminho, fileName, fileContent)
-
+            
+            let result = await this.uploadFileToDirectory(caminho, fileName, fileContent)
+            return {caminho : caminho, arquivo: result}
         } catch (error) {
             throw new Error('Erro ao verificar ou criar os diretórios no servidor FTP: ' + error.message)
         } finally {
